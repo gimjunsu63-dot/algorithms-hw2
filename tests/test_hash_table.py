@@ -55,6 +55,39 @@ class HashTableTests(unittest.TestCase):
         self.assertIsNone(table.get("missing"))
         self.assertEqual(table.last_comparisons, 3)
 
+    def test_default_bucket_count_is_4093(self):
+        table = HashTable()
+
+        self.assertEqual(table.bucket_count, 4093)
+
+    def test_horner_bucket_index(self):
+        table = HashTable()
+
+        self.assertEqual(table.bucket_index(""), 0)
+        self.assertEqual(table.bucket_index("a"), 97)
+        self.assertEqual(table.bucket_index("ab"), (97 * 31 + 98) % 4093)
+
+    def test_no_automatic_resize(self):
+        table = HashTable(bucket_count=3)
+        for index in range(10):
+            table.put(f"key-{index}", index)
+
+        self.assertEqual(table.bucket_count, 3)
+        self.assertEqual(len(table), 10)
+
+    def test_comparison_count_on_hit_with_single_node(self):
+        table = HashTable()
+        table.put("only", 1)
+
+        self.assertEqual(table.get("only"), 1)
+        self.assertEqual(table.last_comparisons, 1)
+
+    def test_comparison_count_on_miss_in_empty_bucket(self):
+        table = HashTable()
+
+        self.assertIsNone(table.get("missing"))
+        self.assertEqual(table.last_comparisons, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
