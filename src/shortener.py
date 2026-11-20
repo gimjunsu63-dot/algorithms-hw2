@@ -2,12 +2,21 @@ from urllib.parse import urlsplit
 
 from base62 import encode
 from hash_table import HashTable
+from linear_probing import LinearProbingTable
 
 
 class Shortener:
-    def __init__(self) -> None:
-        self._url_to_code: HashTable[str] = HashTable()
-        self._code_to_url: HashTable[str] = HashTable()
+    def __init__(self, table: str = "chaining") -> None:
+        self._url_to_code: HashTable[str] | LinearProbingTable[str]
+        self._code_to_url: HashTable[str] | LinearProbingTable[str]
+        if table == "chaining":
+            self._url_to_code = HashTable()
+            self._code_to_url = HashTable()
+        elif table == "linear":
+            self._url_to_code = LinearProbingTable()
+            self._code_to_url = LinearProbingTable()
+        else:
+            raise ValueError("table must be 'chaining' or 'linear'")
         self._next_id = 1
 
     def shorten(self, url: str) -> str:
