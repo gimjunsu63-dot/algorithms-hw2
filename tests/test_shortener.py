@@ -70,11 +70,39 @@ class ShortenerTests(unittest.TestCase):
             "https://example.com/has a space",
             "ftp://example.com",
             "http:///path",
+            "example.com",
+            "https://",
         )
 
         for url in invalid_urls:
             with self.subTest(url=url), self.assertRaises(ValueError):
                 self.shortener.shorten(url)
+
+    def test_expand_returns_original_url(self):
+        url = "https://example.com/some/long/path?q=1"
+        code = self.shortener.shorten(url)
+
+        self.assertEqual(self.shortener.expand(code), url)
+
+    def test_reused_url_does_not_consume_an_id(self):
+        self.shortener.shorten("https://example.com/a")
+        self.shortener.shorten("https://example.com/a")
+
+        self.assertEqual(self.shortener.shorten("https://example.com/b"), "2")
+
+    def test_invalid_url_does_not_consume_an_id(self):
+        with self.assertRaises(ValueError):
+            self.shortener.shorten("ftp://example.com")
+
+        self.assertEqual(self.shortener.shorten("https://example.com"), "1")
+
+    def test_62nd_url_gets_two_digit_code(self):
+        for index in range(1, 62):
+            self.shortener.shorten(f"https://example.com/{index}")
+
+        code = self.shortener.shorten("https://example.com/62")
+        self.assertEqual(code, "10")
+        self.assertEqual(self.shortener.expand(code), "https://example.com/62")
 
 
 if __name__ == "__main__":
