@@ -7,9 +7,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from shortener import Shortener
 
 
-class ShortenerTests(unittest.TestCase):
+class ShortenerBehaviorTests:
     def setUp(self):
-        self.shortener = Shortener()
+        self.shortener = self.make_shortener()
+
+    def make_shortener(self):
+        return Shortener()
 
     def test_first_url_uses_base62_code_for_id_one(self):
         self.assertEqual(self.shortener.shorten("https://example.com"), "1")
@@ -103,6 +106,23 @@ class ShortenerTests(unittest.TestCase):
         code = self.shortener.shorten("https://example.com/62")
         self.assertEqual(code, "10")
         self.assertEqual(self.shortener.expand(code), "https://example.com/62")
+
+
+class ShortenerTests(ShortenerBehaviorTests, unittest.TestCase):
+    pass
+
+
+class TableConfiguredShortenerTests(ShortenerBehaviorTests):
+    def make_shortener(self):
+        return Shortener(table=self.table)
+
+
+class ChainingShortenerTests(TableConfiguredShortenerTests, unittest.TestCase):
+    table = "chaining"
+
+
+class LinearShortenerTests(TableConfiguredShortenerTests, unittest.TestCase):
+    table = "linear"
 
 
 if __name__ == "__main__":

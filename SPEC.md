@@ -79,3 +79,31 @@
 - HTTP: 입력 폼 표시, 정상 URL 제출, 잘못된 URL 제출, 성공 리다이렉트, 없는 코드,
   `/table` 표시, `X-Forwarded-Host`가 있을 때와 없을 때의 짧은 링크 주소,
   알 수 없는 경로, 미지원 메서드.
+
+## 7. 선형 탐지 테이블 (과제)
+
+- `src/linear_probing.py`에 `LinearProbingTable`을 만듭니다. `HashTable`과 같은 인터페이스
+  (`put`, `get`, `len(table)`, `bucket_count`, `bucket_index`, `last_comparisons`)를 가집니다.
+- 해시는 `HashTable`과 같은 호너 방식이고, 버킷 수 기본값도 4093이며 자동 확장은 하지 않습니다.
+- 한 칸에는 항목 하나만 들어갑니다. 칸이 차 있으면 다음 칸(`(i + 1) % 버킷_수`)을 봅니다.
+  마지막 칸 다음은 0번 칸입니다.
+- `put(key, value)`: 같은 키가 있으면 값을 바꾸지 않습니다. 빈 칸에 넣습니다.
+  새 키를 넣을 빈 칸이 없으면(가득 참) `OverflowError`를 냅니다.
+- `get(key)`: 키를 찾으면 값을, 빈 칸을 만나거나 모든 칸을 다 보면 `None`을 돌려줍니다.
+- `last_comparisons`는 마지막 `get`에서 들여다본 칸 수입니다. 멈춘 빈 칸도 1로 셉니다.
+  (체이닝은 빈 버킷을 0으로 세므로 세는 기준이 다릅니다.)
+- 삭제는 지원하지 않습니다.
+- 단축기는 `Shortener(table="chaining")`이 기본이고, `Shortener(table="linear")`로 선형 탐지를 씁니다.
+  단축기 동작은 두 테이블에서 같아야 합니다.
+- 서버는 `make serve`(체이닝)와 `make serve TABLE=linear`(선형 탐지)로 고를 수 있습니다.
+  선형 탐지일 때 `/table`은 칸마다 들어 있는 키와, 각 키가 처음 해시된 칸과 실제로 들어간 칸,
+  그 사이에 들여다본 칸을 보여 줍니다.
+
+### 7.1 선형 탐지 경계 사례
+
+- 끝 칸에서 0번 칸으로 넘어가기 (예: 버킷 수 5에서 마지막 칸에 해시되는 키가 충돌)
+- 가득 찬 테이블: 새 키 `put`은 `OverflowError`, 이미 있는 키 `put`은 에러 없음,
+  없는 키 `get`은 `None`이고 `last_comparisons`는 버킷 수
+- 빈 테이블 조회는 `last_comparisons`가 1
+- 충돌한 키들이 연속된 칸에 들어가고 모두 조회됨
+- 단축기 테스트 전체가 `table="linear"`에서도 통과
